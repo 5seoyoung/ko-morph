@@ -1,0 +1,12 @@
+[package]
+name = "ko-morph"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "ko-morph"
+path = "src/main.rs"
+
+[dependencies]
+regex = "1"
+unicode-normalization = "0.1"
