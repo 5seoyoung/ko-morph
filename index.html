@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ko-morph: 하이브리드 한국어 형태소 분석기</title>
+    <meta name="description" content="규칙, 통계, LLM을 결합한 차세대 한국어 형태소 분석 도구">
     <style>
         * {
             margin: 0;
@@ -11,232 +12,303 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #3182f6;
+            --primary-hover: #1b64da;
+            --text-primary: #191f28;
+            --text-secondary: #4e5968;
+            --bg-light: #f9fafb;
+            --border: #e5e8eb;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: white;
+            color: var(--text-primary);
+            line-height: 1.6;
         }
 
         .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1rem 0;
+            background: white;
+            border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
             z-index: 100;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 0 24px;
         }
 
         .nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            height: 64px;
         }
 
         .logo {
-            font-size: 1.5rem;
+            font-size: 20px;
             font-weight: 700;
-            color: #4f46e5;
+            color: var(--primary);
+            text-decoration: none;
         }
 
         .nav-links {
             display: flex;
-            gap: 2rem;
+            gap: 32px;
             list-style: none;
+            align-items: center;
         }
 
         .nav-links a {
             text-decoration: none;
-            color: #64748b;
+            color: var(--text-secondary);
             font-weight: 500;
+            font-size: 15px;
             transition: color 0.2s;
         }
 
         .nav-links a:hover {
-            color: #4f46e5;
+            color: var(--primary);
         }
 
-        .hero {
-            text-align: center;
-            padding: 6rem 0;
-            color: white;
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            line-height: 1.2;
-        }
-
-        .hero p {
-            font-size: 1.25rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background: #4f46e5;
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.2s;
-            box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.4);
-        }
-
-        .cta-button:hover {
-            background: #4338ca;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px 0 rgba(79, 70, 229, 0.5);
-        }
-
-        .features {
-            background: white;
-            padding: 6rem 0;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 3rem;
-            margin-top: 4rem;
-        }
-
-        .feature-card {
-            background: #f8fafc;
-            padding: 2rem;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .feature-icon {
-            width: 48px;
-            height: 48px;
-            background: #4f46e5;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .feature-icon::before {
-            content: '';
-            width: 24px;
-            height: 24px;
-            background: white;
-            border-radius: 4px;
-        }
-
-        .feature-card h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: #1e293b;
-        }
-
-        .feature-card p {
-            color: #64748b;
-            line-height: 1.6;
-        }
-
-        .demo-section {
-            background: #f1f5f9;
-            padding: 6rem 0;
-        }
-
-        .demo-container {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .demo-input {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
-            margin-bottom: 1rem;
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .demo-input:focus {
-            outline: none;
-            border-color: #4f46e5;
-        }
-
-        .demo-button {
-            background: #4f46e5;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
+        .github-link {
+            padding: 8px 16px;
+            background: var(--primary);
+            color: white !important;
             border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
             transition: background 0.2s;
         }
 
-        .demo-button:hover {
-            background: #4338ca;
+        .github-link:hover {
+            background: var(--primary-hover);
         }
 
-        .demo-output {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background: #f8fafc;
+        .hero {
+            padding: 100px 0 80px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 28px;
             border-radius: 8px;
-            border-left: 4px solid #4f46e5;
-            font-family: 'Courier New', monospace;
-            white-space: pre-wrap;
-            display: none;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(49, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-light);
+        }
+
+        .features {
+            padding: 80px 0;
+            background: var(--bg-light);
         }
 
         .section-title {
             text-align: center;
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            color: #1e293b;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
         }
 
         .section-subtitle {
             text-align: center;
-            font-size: 1.1rem;
-            color: #64748b;
-            max-width: 600px;
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 60px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .feature-number {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: white;
+            border-radius: 6px;
+            text-align: center;
+            line-height: 32px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .demo-section {
+            padding: 80px 0;
+        }
+
+        .demo-box {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
+        .demo-input {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        .demo-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.1);
+        }
+
+        .demo-controls {
+            margin-top: 16px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .demo-output {
+            margin-top: 24px;
+            padding: 20px;
+            background: var(--bg-light);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        .demo-output.show {
+            display: block;
+        }
+
+        .installation {
+            padding: 80px 0;
+            background: var(--bg-light);
+        }
+
+        .code-block {
+            background: var(--text-primary);
+            color: #e5e7eb;
+            padding: 24px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 24px;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
         .footer {
-            background: #1e293b;
+            background: var(--text-primary);
             color: white;
+            padding: 60px 0;
             text-align: center;
-            padding: 3rem 0;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 24px;
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: white;
         }
 
         @media (max-width: 768px) {
             .hero h1 {
-                font-size: 2rem;
+                font-size: 36px;
             }
             
             .nav-links {
@@ -245,8 +317,30 @@
             
             .features-grid {
                 grid-template-columns: 1fr;
-                gap: 2rem;
             }
+
+            .cta-group {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -254,12 +348,12 @@
     <header class="header">
         <div class="container">
             <nav class="nav">
-                <div class="logo">ko-morph</div>
+                <a href="#" class="logo">ko-morph</a>
                 <ul class="nav-links">
                     <li><a href="#features">기능</a></li>
                     <li><a href="#demo">데모</a></li>
-                    <li><a href="#docs">문서</a></li>
-                    <li><a href="https://github.com/your-username/ko-morph">GitHub</a></li>
+                    <li><a href="#installation">설치</a></li>
+                    <li><a href="https://github.com/ohseoyoung/ko-morph" class="github-link">GitHub</a></li>
                 </ul>
             </nav>
         </div>
@@ -268,51 +362,54 @@
     <section class="hero">
         <div class="container">
             <h1>하이브리드 한국어<br>형태소 분석기</h1>
-            <p>규칙, 통계, LLM을 결합한 차세대 한국어 자연어 처리 도구</p>
-            <a href="#demo" class="cta-button">지금 시작하기</a>
+            <p>규칙, 통계, LLM을 결합한 차세대 한국어 자연어 처리</p>
+            <div class="cta-group">
+                <a href="#demo" class="btn btn-primary">지금 체험하기</a>
+                <a href="#installation" class="btn btn-secondary">설치 방법</a>
+            </div>
         </div>
     </section>
 
     <section id="features" class="features">
         <div class="container">
-            <h2 class="section-title">핵심 기능</h2>
-            <p class="section-subtitle">전통적인 규칙 기반 접근법과 최신 LLM 기술을 결합하여 높은 정확도와 유연성을 제공합니다</p>
+            <h2 class="section-title">왜 ko-morph인가?</h2>
+            <p class="section-subtitle">기존 형태소 분석기의 한계를 극복한 하이브리드 접근</p>
             
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon"></div>
+                    <div class="feature-number">1</div>
                     <h3>하이브리드 아키텍처</h3>
-                    <p>규칙 기반 후보 생성, 통계적 스코어링, LLM 재랭킹을 조합한 3단계 파이프라인</p>
+                    <p>규칙 기반의 정확성과 LLM의 유연성을 결합하여 높은 정확도 달성</p>
                 </div>
                 
                 <div class="feature-card">
-                    <div class="feature-icon"></div>
-                    <h3>고성능 처리</h3>
-                    <p>Python 레퍼런스와 Rust 고성능 구현을 통해 연구와 배포 모두 지원</p>
+                    <div class="feature-number">2</div>
+                    <h3>신조어 자동 처리</h3>
+                    <p>사전에 없는 신조어도 문맥을 통해 자동으로 품사 추정 및 분해</p>
                 </div>
                 
                 <div class="feature-card">
-                    <div class="feature-icon"></div>
+                    <div class="feature-number">3</div>
                     <h3>모호성 해소</h3>
-                    <p>LLM을 활용한 문맥 기반 모호성 해소로 기존 분석기 대비 높은 정확도</p>
+                    <p>동일 표면형의 여러 해석 중 문맥에 가장 적합한 분석 선택</p>
                 </div>
                 
                 <div class="feature-card">
-                    <div class="feature-icon"></div>
-                    <h3>신조어 처리</h3>
-                    <p>미등록어와 신조어에 대한 동적 품사 추정 및 분해안 생성</p>
+                    <div class="feature-number">4</div>
+                    <h3>고성능 처리</h3>
+                    <p>Python과 Rust 구현으로 연구용과 프로덕션 모두 지원</p>
                 </div>
                 
                 <div class="feature-card">
-                    <div class="feature-icon"></div>
-                    <h3>오탈자 보정</h3>
-                    <p>맞춤법 오류 감지 및 정정 제안을 통한 견고한 텍스트 처리</p>
+                    <div class="feature-number">5</div>
+                    <h3>오탈자 견고성</h3>
+                    <p>맞춤법 오류를 감지하고 정정하여 실제 텍스트에 강건함</p>
                 </div>
                 
                 <div class="feature-card">
-                    <div class="feature-icon"></div>
-                    <h3>도메인 적응</h3>
-                    <p>의료, 법률 등 전문 분야 용어집과 가중치 조정을 통한 도메인 특화</p>
+                    <div class="feature-number">6</div>
+                    <h3>도메인 특화</h3>
+                    <p>의료, 법률 등 전문 분야 용어에 대한 특화 처리 지원</p>
                 </div>
             </div>
         </div>
@@ -321,90 +418,133 @@
     <section id="demo" class="demo-section">
         <div class="container">
             <h2 class="section-title">실시간 데모</h2>
-            <p class="section-subtitle">한국어 문장을 입력하여 형태소 분석 결과를 확인해보세요</p>
+            <p class="section-subtitle">직접 문장을 입력해보세요</p>
             
-            <div class="demo-container">
+            <div class="demo-box">
                 <textarea 
                     class="demo-input" 
-                    placeholder="분석할 한국어 문장을 입력하세요. 예: 오늘은 날씨가 참 좋네요."
                     id="inputText"
-                ></textarea>
+                    placeholder="예: 오늘은 날씨가 참 좋네요."
+                >오늘은 날씨가 참 좋네요.</textarea>
                 
-                <button class="demo-button" onclick="analyzeText()">형태소 분석</button>
+                <div class="demo-controls">
+                    <button class="btn btn-primary" onclick="analyzeText()" id="analyzeBtn">
+                        형태소 분석
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearDemo()">
+                        초기화
+                    </button>
+                </div>
                 
                 <div class="demo-output" id="output"></div>
             </div>
         </div>
     </section>
 
+    <section id="installation" class="installation">
+        <div class="container">
+            <h2 class="section-title">빠른 시작</h2>
+            <p class="section-subtitle">Python으로 바로 사용해보세요</p>
+            
+            <div class="code-block">
+                <code># 설치
+pip install git+https://github.com/ohseoyoung/ko-morph.git
+
+# 사용
+from komorph import Analyzer
+
+analyzer = Analyzer()
+result = analyzer.analyze("오늘은 날씨가 좋다")
+print(result)</code>
+            </div>
+        </div>
+    </section>
+
     <footer class="footer">
         <div class="container">
-            <p>ko-morph - 하이브리드 한국어 형태소 분석기</p>
-            <p>MIT License | 오픈소스 프로젝트</p>
+            <div class="logo">ko-morph</div>
+            <p style="margin-top: 12px; opacity: 0.7;">하이브리드 한국어 형태소 분석기</p>
+            <ul class="footer-links">
+                <li><a href="https://github.com/ohseoyoung/ko-morph">GitHub</a></li>
+                <li><a href="https://github.com/ohseoyoung/ko-morph/issues">Issues</a></li>
+                <li><a href="https://github.com/ohseoyoung/ko-morph/blob/main/LICENSE">License</a></li>
+            </ul>
         </div>
     </footer>
 
     <script>
-        async function analyzeText() {
+        function analyzeText() {
             const input = document.getElementById('inputText').value.trim();
             const output = document.getElementById('output');
+            const btn = document.getElementById('analyzeBtn');
             
             if (!input) {
                 alert('분석할 텍스트를 입력해주세요.');
                 return;
             }
             
-            output.style.display = 'block';
+            btn.innerHTML = '<span class="loading"></span>';
+            btn.disabled = true;
+            
+            output.classList.add('show');
             output.textContent = '분석 중...';
             
-            // 실제 구현 시 API 호출로 대체
             setTimeout(() => {
-                const mockResult = mockAnalyze(input);
-                output.textContent = mockResult;
-            }, 1000);
+                const result = mockAnalyze(input);
+                output.textContent = result;
+                btn.innerHTML = '형태소 분석';
+                btn.disabled = false;
+            }, 800);
+        }
+        
+        function clearDemo() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('output').classList.remove('show');
         }
         
         function mockAnalyze(text) {
-            // 데모용 모의 분석 결과
-            const sentences = text.split(/[.!?]/);
-            let result = '';
+            const tokens = text.split(/\s+/);
+            let result = '분석 결과:\n\n';
             
-            sentences.forEach((sentence, idx) => {
-                if (sentence.trim()) {
-                    result += `문장 ${idx + 1}: ${sentence.trim()}\n`;
-                    result += `분석 결과:\n`;
-                    
-                    // 간단한 모의 분석
-                    const words = sentence.trim().split(/\s+/);
-                    words.forEach(word => {
-                        if (word.endsWith('은') || word.endsWith('는')) {
-                            const stem = word.slice(0, -1);
-                            const josa = word.slice(-1);
-                            result += `  ${word} → ${stem}/N + ${josa}/J\n`;
-                        } else if (word.endsWith('가') || word.endsWith('이')) {
-                            const stem = word.slice(0, -1);
-                            const josa = word.slice(-1);
-                            result += `  ${word} → ${stem}/N + ${josa}/J\n`;
-                        } else if (word.endsWith('다') || word.endsWith('요')) {
-                            const stem = word.slice(0, -1);
-                            const eomi = word.slice(-1);
-                            result += `  ${word} → ${stem}/V + ${eomi}/E\n`;
-                        } else {
-                            result += `  ${word} → ${word}/N\n`;
-                        }
-                    });
-                    result += '\n';
+            tokens.forEach((token, idx) => {
+                if (token.endsWith('은') || token.endsWith('는')) {
+                    const stem = token.slice(0, -1);
+                    const josa = token.slice(-1);
+                    result += `${idx + 1}. ${token}\n   → ${stem}/명사 + ${josa}/조사\n\n`;
+                } else if (token.endsWith('가') || token.endsWith('을') || token.endsWith('를')) {
+                    const stem = token.slice(0, -1);
+                    const josa = token.slice(-1);
+                    result += `${idx + 1}. ${token}\n   → ${stem}/명사 + ${josa}/조사\n\n`;
+                } else if (token.endsWith('다') || token.endsWith('네요')) {
+                    const stemLen = token.endsWith('네요') ? -2 : -1;
+                    const stem = token.slice(0, stemLen);
+                    const eomi = token.slice(stemLen);
+                    result += `${idx + 1}. ${token}\n   → ${stem}/동사 + ${eomi}/어미\n\n`;
+                } else if (/[.!?,]/.test(token)) {
+                    result += `${idx + 1}. ${token}\n   → ${token}/기호\n\n`;
+                } else {
+                    result += `${idx + 1}. ${token}\n   → ${token}/명사\n\n`;
                 }
             });
             
-            return result || '분석할 수 있는 문장이 없습니다.';
+            result += '* 실제 API를 연결하면 더 정확한 분석이 가능합니다.';
+            return result;
         }
-        
-        // 엔터키로 분석 실행
+
         document.getElementById('inputText').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && e.ctrlKey) {
+            if (e.key === 'Enter' && e.metaKey) {
                 analyzeText();
             }
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
         });
     </script>
 </body>
