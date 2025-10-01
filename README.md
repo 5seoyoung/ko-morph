@@ -78,21 +78,6 @@ cargo run --release -- "오늘은 날씨가 참 좋네요."
 echo "학교에서 공부한다" | cargo run --release
 ```
 
-### Python API 사용
-
-```python
-from komorph import Analyzer
-
-# 분석기 초기화
-analyzer = Analyzer()
-
-# 분석 실행
-result = analyzer.analyze("오늘은 날씨가 참 좋네요.")
-
-# 텍스트 형식 출력
-print(analyzer.analyze_text("오늘은 날씨가 참 좋네요."))
-```
-
 **출력 예시 (Python & Rust 동일):**
 ```
 오늘	오늘/N + 은/J
@@ -226,18 +211,7 @@ ko-morph/
    - `regex`: 정규식 처리
    - `unicode-normalization`: 유니코드 정규화
 5. **Cross-platform**: Windows, macOS, Linux 모두 단일 바이너리로 배포 가능
-
-## 성능 벤치마크 (예시)
-
-```
-테스트 문장 1,000개 (평균 15어절)
-- Python: 1.2초
-- Rust: 0.08초 (15배 빠름)
-
-메모리 사용 (1만 문장 처리)
-- Python: 52 MB
-- Rust: 18 MB
-```
+6. 
 
 ## 테스트
 
